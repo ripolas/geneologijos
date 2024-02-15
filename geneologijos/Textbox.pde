@@ -20,7 +20,7 @@ class Textbox {
     }
   }
   int dst(){
-    return (int)dist(pos.x,pos.y,mouseX,mouseY);
+    return (int)dist(pos.x,pos.y,mouseX-offx,mouseY-offy);
   }
   void show() {
     textSize(30);
