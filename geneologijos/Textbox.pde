@@ -23,8 +23,9 @@ class Textbox {
     return (int)dist(pos.x,pos.y,mouseX,mouseY);
   }
   void show() {
-    textAlign(LEFT,CENTER);
+    textSize(30);
+    textAlign(LEFT,TOP);
     fill(0);
-    text(text,pos.x,pos.y);
+    text(text,pos.x+offx,pos.y+offy);
   }
 }

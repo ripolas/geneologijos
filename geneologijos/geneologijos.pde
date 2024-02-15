@@ -29,22 +29,34 @@ void draw() {
   }
   if (textool) {
     cursor(TEXT);
-    click=false;
-    if (mouseButton==RIGHT) {
-      int closestid=0;
-      int closestdst=99999;
-      for (int i = 0; i<textboxes.size(); i++) {
-        if (textboxes.get(i).dst()<closestdst) {
-          closestid=i;
-          closestdst=textboxes.get(i).dst();
+    if(click){
+      click=false;
+      if (mouseButton==RIGHT) {
+        int closestid=0;
+        int closestdst=99999;
+        for (int i = 0; i<textboxes.size(); i++) {
+          textboxes.get(i).urselected = false;
+          if (textboxes.get(i).dst()<closestdst) {
+            closestid=i;
+            closestdst=textboxes.get(i).dst();
+          }
+        }
+        textboxselected = true;
+        textboxes.get(closestid).urselected = true;
+      } else if (mouseButton==LEFT) {
+        if(!textboxselected){
+          textboxselected=true;
+          for (int i = 0; i<textboxes.size(); i++) {
+            textboxes.get(i).urselected=false;
+          }
+          textboxes.add(new Textbox(new PVector(mouseX-offx, mouseY-offy)));
+        }else{
+          for (int i = 0; i<textboxes.size(); i++) {
+            textboxes.get(i).urselected = false;
+          }
+          textboxselected = false;
         }
       }
-    } else if (mouseButton==LEFT) {
-      textboxselected=true;
-      for (int i = 0; i<textboxes.size(); i++) {
-        textboxes.get(i).urselected=false;
-      }
-      textboxes.add(new Textbox(new PVector(mouseX, mouseY)));
     }
   } else {
     cursor(ARROW);
@@ -61,25 +73,27 @@ void draw() {
   level.show();
 
   hovered_tile =new PVector(int((mouseX-offx)/tileSize), int( (mouseY-offy)/tileSize));
-  if (click&&mouseButton==LEFT) {
-    if (menuPhase==0) {
-      click=false;
-      selected_tile=new PVector(int((mouseX-offx)/tileSize), int( (mouseY-offy)/tileSize));
-      if (level.tiles[(int)selected_tile.x][(int)selected_tile.y].imgx==-1&&level.tiles[(int)selected_tile.x][(int)selected_tile.y].imgy==-1) {
-        menuPhase+=2;
-      } else {
-        menuPhase++;
+  if(!textool){
+    if (click&&mouseButton==LEFT) {
+      if (menuPhase==0) {
+        click=false;
+        selected_tile=new PVector(int((mouseX-offx)/tileSize), int( (mouseY-offy)/tileSize));
+        if (level.tiles[(int)selected_tile.x][(int)selected_tile.y].imgx==-1&&level.tiles[(int)selected_tile.x][(int)selected_tile.y].imgy==-1) {
+          menuPhase+=2;
+        } else {
+          menuPhase++;
+        }
       }
     }
-  }
-  if (click&&mouseButton==RIGHT) {
-    connections.add(new ArrayList<PVector>());
-    connections.get(connections.size()-1).add(hovered_tile);
-  } else if (mousePressed&&mouseButton==RIGHT) {
-    if (connections.get(connections.size()-1).size()==1) {
+    if (click&&mouseButton==RIGHT) {
+      connections.add(new ArrayList<PVector>());
       connections.get(connections.size()-1).add(hovered_tile);
-    } else {
-      connections.get(connections.size()-1).set(1, hovered_tile);
+    } else if (mousePressed&&mouseButton==RIGHT) {
+      if (connections.get(connections.size()-1).size()==1) {
+        connections.get(connections.size()-1).add(hovered_tile);
+      } else {
+        connections.get(connections.size()-1).set(1, hovered_tile);
+      }
     }
   }
   if (mousePressed&&mouseButton==CENTER) {
@@ -210,5 +224,5 @@ void cutImages() {
 }
 void mouseWheel(MouseEvent event) {
   int e = (int)event.getCount();
-  tileSize-=e;
+  //tileSize-=e;
 }
