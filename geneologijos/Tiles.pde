@@ -5,22 +5,9 @@ class Tile {
   int imgx=-1;
   int imgy=-1;
   boolean dead=false;
-  Tile(int costume, int gridx, int gridy) {
-    this.costume=costume;
+  Tile(int gridx, int gridy) {
     this.gridx=gridx;
     this.gridy=gridy;
-    updateImg(costume);
-  }
-  void invert() {
-    if (costume==0) {
-      costume=1;
-    } else {
-      costume=0;
-    }
-    updateImg(costume);
-  }
-  void updateImg(int to) {
-    costume=to;
   }
   void update() {
   }

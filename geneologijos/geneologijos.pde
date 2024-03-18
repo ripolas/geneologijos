@@ -9,8 +9,11 @@ ArrayList<ArrayList<PVector>> connections =new ArrayList();
 boolean drawempty=true;
 int w, h;
 ArrayList<Textbox>textboxes=new ArrayList<Textbox>();
+JSONArray save_array;
+boolean numerated = false;
 void setup() {
-  size(1000, 1000, P2D);
+  fullScreen();
+  save_array = new JSONArray();
   w=width;
   h=height;
   frameRate(1000);
@@ -24,9 +27,7 @@ PVector hovered_tile;
 char pressed;
 void draw() {
   background(255);
-  if (drawempty) {
-    level.showEmpty();
-  }
+  
   if (textool) {
     cursor(TEXT);
     if(click){
@@ -43,7 +44,8 @@ void draw() {
         }
         textboxselected = true;
         textboxes.get(closestid).urselected = true;
-      } else if (mouseButton==LEFT) {
+      }
+      if (mouseButton==LEFT) {
         if(!textboxselected){
           textboxselected=true;
           for (int i = 0; i<textboxes.size(); i++) {
@@ -62,15 +64,7 @@ void draw() {
     cursor(ARROW);
   }
   // LINES
-  for (int i = 0; i<connections.size(); i++) {
-    if (connections.get(i).size()==2) {
-      stroke(0);
-      strokeWeight(1);
-      line(connections.get(i).get(0).x*tileSize+offx+tileSize/2, connections.get(i).get(0).y*tileSize+offy+tileSize/2, connections.get(i).get(1).x*tileSize+offx+tileSize/2, connections.get(i).get(1).y*tileSize+offy+tileSize/2);
-    }
-  }
-  level.update();
-  level.show();
+  
 
   hovered_tile =new PVector(int((mouseX-offx)/tileSize), int( (mouseY-offy)/tileSize));
   if(!textool){
@@ -169,9 +163,27 @@ void draw() {
       }
     }
   }
+  level.update();
+  if (drawempty) {
+    level.showEmpty();
+  }
+  for (int i = 0; i<connections.size(); i++) {
+    if (connections.get(i).size()==2) {
+      stroke(0);
+      strokeWeight(1);
+      line(connections.get(i).get(0).x*tileSize+offx+tileSize/2, connections.get(i).get(0).y*tileSize+offy+tileSize/2, connections.get(i).get(1).x*tileSize+offx+tileSize/2, connections.get(i).get(1).y*tileSize+offy+tileSize/2);
+    }
+  }
+  
+  level.show();
   for (int i = 0; i<textboxes.size(); i++) {
     textboxes.get(i).update();
-    textboxes.get(i).show();
+  }
+  for(int i = 0;i<textboxes.size();i++){
+    textboxes.get(i).show();     
+  }
+  if(numerated){
+    level.numerate();
   }
   click=false;
   pressed='`';
@@ -182,7 +194,19 @@ void mousePressed() {
 boolean textool=false;
 void keyPressed() {
   pressed=key;
+  if(key=='n')numerated = !numerated;
+  if(keyCode==UP)pressed = char(23131);
+  if(keyCode==DOWN)pressed = char(23132);
+  if(keyCode==LEFT)pressed = char(23133);
+  if(keyCode==RIGHT)pressed = char(23134);
   if (!textboxselected) {
+    if(key=='s'){
+      selectOutput("Select where to save file:", "saveJSON");
+    }
+    if(key=='l'){
+      selectInput("Select which file to load:", "loadJSON");
+      
+    }
     if (key=='t') {
       textboxselected=false;
       textool=!textool;
@@ -223,6 +247,48 @@ void cutImages() {
   }
 }
 void mouseWheel(MouseEvent event) {
-  int e = (int)event.getCount();
   //tileSize-=e;
+}
+void loadJSON(File selection){
+  println("LOADIN'");
+  JSONArray test;
+  test = loadJSONArray(selection.getAbsolutePath());
+  connections = new ArrayList<>();
+  level=new Level(int(width/tileSize)*8, int(height/tileSize)*8);
+  offx=-level.cols*tileSize/2-width/2;
+  offy=-level.rows*tileSize/2-height/2;
+  for(int i = 0;i<test.size();i++){
+    try{
+      JSONObject item = test.getJSONObject(i);
+      int type = item.getInt("type");
+      if(type == 0){
+        int tilex = item.getInt("x");
+        int tiley = item.getInt("y");
+        int imgx = item.getInt("imgx");
+        int imgy = item.getInt("imgy");
+        level.tiles[tilex][tiley].imgx = imgx;
+        level.tiles[tilex][tiley].imgy = imgy;
+      }else if (type == 1){
+        connections.add(new ArrayList<PVector>());
+        int fx = item.getInt("first_x");
+        int fy = item.getInt("first_y");
+        int sx = item.getInt("second_x");
+        int sy = item.getInt("second_y");
+        connections.get(connections.size()-1).add(new PVector(fx,fy));
+        connections.get(connections.size()-1).add(new PVector(sx,sy));
+      }else if(type == 2){// textbox
+        textboxes = new ArrayList<Textbox>();
+        int px = item.getInt("posx");
+        int py = item.getInt("posy");
+        textboxes.add(new Textbox(new PVector(px,py)));
+        String  txt = item.getString("text");
+        textboxes.get(textboxes.size()-1).text = txt;
+      }
+    }catch (Exception e){
+      println("LOADING FAILED");
+    }
+  } 
+}
+void saveJSON(File file){
+  level.save_level(file.getAbsolutePath());
 }
